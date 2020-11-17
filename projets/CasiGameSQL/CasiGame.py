@@ -2,7 +2,6 @@
 # -------
 # UPDATE 5/11/2020: Need make leader, with 3 widget, print the labels tk about bet and win/lose money.
 # and connect with Password for users. AND print the Entry for credit the account
-
 # -------
 
 import os
@@ -15,32 +14,24 @@ from operator import itemgetter
 import mysql.connector
 import connectBDD
 from DAO_sql import *
+from pprint import pprint
 
-
-#Interface du programme 
-
-
+#*Interface du programme 
 root = tk.Tk()
 root.title("CasiGame")
 root.geometry('750x750')
 root.minsize(width=750,height=750)
 root.maxsize(width=750,height=750)
 
-
-
-# FUNCTIONS
-
-
-def save_money(money): #This function save your money
-    
+#* FUNCTIONS
+def save_money(money):
     # files_money = open(data_zcasino.name_file, 'wb')
     # the_pickler = pickle.Pickler(files_money)
     # the_pickler.dump(money)
     # files_money.close()
-    
+    pass
 
-
-def retrieve_name_user(): #This function save your nameUser
+def retrieve_name_user():
     
     name_user = inputName.get()
     name_user = name_user.capitalize()
@@ -51,11 +42,8 @@ def retrieve_name_user(): #This function save your nameUser
         lname = tk.Label(root,text ='\nHi '+ str(name_user) +' Welcome back to CasiGame !').pack()
     return name_user
 
-
-
-def retrieve_money(): #This function retrieve the money of players in the files storage
-    
-    table_users_money = cur.execute("SELECT money FROM users WHERE ")
+def retrieve_money(): 
+    table_users_money = cur.execute("SELECT * FROM users WHERE name_user = ?", usernameEntry)
     money = cur.fetchall()
 
     for n in money:
@@ -79,59 +67,42 @@ def retrieve_money(): #This function retrieve the money of players in the files 
     #     money = {}
     # return money 
 
-# def readmoney():
-#     files_money = open(data_zcasino.name_file, 'rb')
-#     sorted(money.items(), key=lambda colonnes: colonnes[1])
-#     for i in files_money:
-#         print(i)
+def readmoney():
+    #files_money = open(data_zcasino.name_file, 'rb')
+    #sorted(money.items(), key=lambda colonnes: colonnes[1])
+    #for i in files_money:
+         #print(i)
+    pass
 
-# a = readmoney()
+def CheckUserExist(name):
+    print(name)
+    name2 = (name,)
+    query = ("SELECT * FROM users WHERE name_user = %s")
+    request = cur.execute(query, name2)
 
-# print(a)
+    #! FOR PRINT A QUERY REQUEST
+    for (identifiant,nom,password,money) in cur:
+        print("id -> {}, nom -> {}, password -> {}, money -> {}".format(identifiant, nom, password, money))
     
-                  
-money = retrieve_money()
-
-def getEntryName():
-
-    table_users = cur.execute("SELECT name_user FROM users")
-    # if start == True:
-    name_user = inputName.get()
-    money = 1000
-    if name_user not in table_users:
-        table_users = cur.execute("INSERT INTO users VALUES (?,?,?)", name_user, money)
-        l1 = tk.Label(root, text='\nYou are not in DataBase you are a new user [{0}] you start with : {1}$'.format(name_user, money)).pack()
+    if query:
+        return True 
     else:
-        table_users = cur.execute("SELECT * FROM users")
-        name_user = cur.fetchone([1])
-        money = cur.fetchone([2])
-        for n in name_user:
-            return name_user
-        tk.Label(root,text ='\nHi ['+ str(name_user) +'] Welcome back to CasiGame ! You have : '+ str(money) +'$').pack()
+        return False
 
-    # name_user = inputName.get()
-    # if name_user not in money.keys():
-    #     money[name_user] = 1000
-    #     l1 = tk.Label(root, text='\nYou are not in DataBase you are a new user [{0}] you start with : {1}$'.format(name_user, money[name_user])).pack()
-    #     newtext = 'MyNew text'
-    #     l1.config(text=newtext)
-    # else:
-    #     tk.Label(root,text ='\nHi ['+ str(name_user) +'] Welcome back to CasiGame ! You have : '+ str(money[name_user]) +'$').pack()
-    #     return name_user
-    #     newtext = 'MyNew text'
-    #     l1.config(text=newtext)
-
-    # if money[name_user] == 0:
-    #     tk.Label(root, text = '''You don't have enough money for bet ! you have: 0 $''').pack()
-    #     credit = tk.Entry(root, text = '''Do you want credit your account with 100$ ? y/n : ''').pack()
-    #     credit = input('Do you want credit your account with 100$ ? y/n : ')
-    #     if credit == "y" or credit == "Y":
-    #         money[name_user] =+ 100
-    #     else:
-    #         tk.Label(root, text='Without money you leave the game sorry !').pack()
-    #         start = False
-
-
+def connectToDB():
+    cur        = connect.cursor(buffered = True)
+    user_exist = CheckUserExist(inputName.get())
+    name       = inputName.get()
+    money      = 1000
+    pwd        = 'azerty'
+    if user_exist == True:
+        l1 = tk.Label(root, text='\n Welcome [{0}]'.format(name, money)).pack()
+    else:
+        addUser = ("INSERT INTO users (name_user, pwd, money) VALUES (%s, %s, %s)")
+        User    = (name, 'test', money)
+        cur.execute(addUser, User)
+        connect.commit()
+        l1 = tk.Label(root, text='\nYou are not in DataBase you are a new user [{0}] you start with : {1}$'.format(name, money)).pack()
 
 def getEntryNumberANDBet():
 
@@ -185,99 +156,64 @@ def getEntryNumberANDBet():
 
     save_money(money)
 
+#* INTERFACE
+def createLabel(textContent):
+    return tk.Label(root, text=textContent).pack()
 
+def createEntry():
+    return tk.Entry(root)
 
+def createButton(textContent, widthButton, callFunction, paddingY):
+    return tk.Button(root, text=textContent, width=widthButton, command=callFunction).pack(pady=paddingY) 
 
+createLabel('\nWELCOME TO THE GASIGAME :\n')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# INTERFACE
-
-l = tk.Label(root, 
-            text='\nWELCOME TO THE GASIGAME :\n').pack()
-
-def create():
+def createWindow():
     win = tk.Toplevel(root) 
     win.geometry('550x750')
     tk.Button(win, text = "Month").pack(ipadx=5,ipady=5, fill=tk.X)
     tk.Button(win, text = "Week").pack(ipadx=5,ipady=5, fill=tk.X)
     tk.Button(win, text = "Day").pack(ipadx=5,ipady=5, fill=tk.X)
-btn = tk.Button(root, text="View the Leadder", command = create)
-btn.pack(pady = 10) 
 
-# Leave the game
+btn = createButton('View the Leadder', 30, createWindow,10)
 
+#* Leave the game
 def close_window():
     root.destroy()
 
-buttonQuit = tk.Button(root,
-                        text='''Quit the game''',
-                        bg = 'Red',
-                        width=15,
-                        command= close_window).pack(side=tk.BOTTOM, pady = 50)
-
-tk.Label(root, 
-            text='\nPlease input your name :').pack()
+buttonQuit = tk.Button(root, text='''Quit the game''', bg = 'Red', width=15, command= close_window).pack(side=tk.BOTTOM, pady = 50)
 
 entries = []
 for i in range(1):
-    inputName = tk.Entry(root)
+    createLabel('\n Please input your name :')
+    inputName = createEntry()
     inputName.insert(0, "Ex : warrior59")
     inputName.pack()
+    inputPassword = createEntry()
+    createLabel('\n Please input your password :')
+    inputPassword.pack()
     entries.append(inputName)
-#root.bind("<Return>", lambda event: sendName(event, entries))
+    entries.append(inputPassword)
 
-buttonName = tk.Button(root,
-                        text='''Check if you exist''',
-                        width=30,
-                        command=getEntryName).pack()
+ButtonCheckExist = createButton('Check if you exist', 30, connectToDB,10)
 
-# CHECK AND LET'S BET (input bet)
 
-labreak = tk.Label(root, 
-                text='\n').pack()
-
-lab2 = tk.Label(root, 
-                text='Please input your bet :').pack()
+#* CHECK AND LET'S BET (input bet)
+createLabel('\n Please input your bet :')
 
 entries = []
 for i in range(1):
-    inputBet = tk.Entry(root)
-    inputBet.pack()
+    inputBet = createEntry().pack()
     entries.append(inputBet)
-# root.bind("<Return>", lambda event: sendBet(event, entries))
 
-
-# CHECK AND LET'S BET (input number)
-
-lab3 = tk.Label(root, 
-                text='Please input your number into 0 and 49:').pack()
+#* CHECK AND LET'S BET (input number)
+createLabel('Please input your number into 0 and 49:')
 
 entries = []
 for i in range(1):
-    inputNumber = tk.Entry(root)
-    inputNumber.pack()
+    inputNumber = createEntry().pack()
     entries.append(inputNumber)
-# root.bind("<Return>", lambda event: sendNumber(event, entries))
 
-buttonStart = tk.Button(root,
-                        text='''Let's Bet''',
-                        width=30,
-                        command=getEntryNumberANDBet).pack()
+buttonBet = createButton('Let\'s Bet', 30, getEntryNumberANDBet,0)
 
 root.mainloop() 
-
-
-
-
