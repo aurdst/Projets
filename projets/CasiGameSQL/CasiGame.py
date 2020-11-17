@@ -1,7 +1,7 @@
 
 # -------
 # UPDATE 5/11/2020: Need make leader, with 3 widget, print the labels tk about bet and win/lose money.
-# and connect with Password for users
+# and connect with Password for users. AND print the Entry for credit the account
 
 # -------
 
@@ -12,8 +12,13 @@ from random import randrange
 from math import ceil
 import pickle
 from operator import itemgetter
+import mysql.connector
+import connectBDD
+from DAO_sql import *
+
 
 #Interface du programme 
+
 
 root = tk.Tk()
 root.title("CasiGame")
@@ -21,73 +26,19 @@ root.geometry('750x750')
 root.minsize(width=750,height=750)
 root.maxsize(width=750,height=750)
 
+
+
 # FUNCTIONS
 
 
 def save_money(money): #This function save your money
     
-    files_money = open(data_zcasino.name_file, 'wb')
-    the_pickler = pickle.Pickler(files_money)
-    the_pickler.dump(money)
-    files_money.close()
-
-def retrieve_money(): #This function retrieve the money of players in the files storage
-    
-    if os.path.exists(data_zcasino.name_file):
-        files_money = open(data_zcasino.name_file, 'rb')
-        the_depickler = pickle.Unpickler(files_money)
-        money = the_depickler.load()
-        files_money.close()
-        #//// VERIF ERROR FILES EMPTY////
-        # try:
-        #     the_depickler = pickle.Unpickler(files_money)
-        #     money = the_depickler.load()
-        #     files_money.close()
-        # except EOFError:
-        #     money = {}  # or whatever you want
-    else:
-        money = {}
-    return money 
-
-def readmoney():
-    files_money = open(data_zcasino.name_file, 'rb')
-    sorted(money.items(), key=lambda colonnes: colonnes[1])
-    for i in files_money:
-        print(i)
-
-a = readmoney()
-
-print(a)
+    # files_money = open(data_zcasino.name_file, 'wb')
+    # the_pickler = pickle.Pickler(files_money)
+    # the_pickler.dump(money)
+    # files_money.close()
     
 
-# start = True                   
-money = retrieve_money()
-# We take name money
-
-def getEntryName():
-
-    # if start == True:
-    name_user = inputName.get()
-    if name_user not in money.keys():
-        money[name_user] = 1000
-        l1 = tk.Label(root, text='\nYou are not in DataBase you are a new user [{0}] you start with : {1}$'.format(name_user, money[name_user])).pack()
-        newtext = 'MyNew text'
-        l1.config(text=newtext)
-    else:
-        tk.Label(root,text ='\nHi ['+ str(name_user) +'] Welcome back to CasiGame ! You have : '+ str(money[name_user]) +'$').pack()
-        return name_user
-        newtext = 'MyNew text'
-        l1.config(text=newtext)
-
-    if money[name_user] == 0:
-        tk.Label(root, text = '''You don't have enough money for bet ! you have: 0 $''').pack()
-        credit = tk.Entry(root, text = '''Do you want credit your account with 100$ ? y/n : ''').pack()
-        credit = input('Do you want credit your account with 100$ ? y/n : ')
-        if credit == "y" or credit == "Y":
-            money[name_user] =+ 100
-        else:
-            tk.Label(root, text='Without money you leave the game sorry !').pack()
-            start = False
 
 def retrieve_name_user(): #This function save your nameUser
     
@@ -100,9 +51,90 @@ def retrieve_name_user(): #This function save your nameUser
         lname = tk.Label(root,text ='\nHi '+ str(name_user) +' Welcome back to CasiGame !').pack()
     return name_user
 
+
+
+def retrieve_money(): #This function retrieve the money of players in the files storage
+    
+    table_users_money = cur.execute("SELECT money FROM users WHERE ")
+    money = cur.fetchall()
+
+    for n in money:
+        print (money)
+    
+    return money
+
+    # if os.path.exists(data_zcasino.name_file):
+    #     files_money = open(data_zcasino.name_file, 'rb')
+    #     the_depickler = pickle.Unpickler(files_money)
+    #     money = the_depickler.load()
+    #     files_money.close()
+        #//// VERIF ERROR FILES EMPTY////
+        # try:
+        #     the_depickler = pickle.Unpickler(files_money)
+        #     money = the_depickler.load()
+        #     files_money.close()
+        # except EOFError:
+        #     money = {}  # or whatever you want
+    # else:
+    #     money = {}
+    # return money 
+
+# def readmoney():
+#     files_money = open(data_zcasino.name_file, 'rb')
+#     sorted(money.items(), key=lambda colonnes: colonnes[1])
+#     for i in files_money:
+#         print(i)
+
+# a = readmoney()
+
+# print(a)
+    
+                  
+money = retrieve_money()
+
+def getEntryName():
+
+    table_users = cur.execute("SELECT name_user FROM users")
+    # if start == True:
+    name_user = inputName.get()
+    money = 1000
+    if name_user not in table_users:
+        table_users = cur.execute("INSERT INTO users VALUES (?,?,?)", name_user, money)
+        l1 = tk.Label(root, text='\nYou are not in DataBase you are a new user [{0}] you start with : {1}$'.format(name_user, money)).pack()
+    else:
+        table_users = cur.execute("SELECT * FROM users")
+        name_user = cur.fetchone([1])
+        money = cur.fetchone([2])
+        for n in name_user:
+            return name_user
+        tk.Label(root,text ='\nHi ['+ str(name_user) +'] Welcome back to CasiGame ! You have : '+ str(money) +'$').pack()
+
+    # name_user = inputName.get()
+    # if name_user not in money.keys():
+    #     money[name_user] = 1000
+    #     l1 = tk.Label(root, text='\nYou are not in DataBase you are a new user [{0}] you start with : {1}$'.format(name_user, money[name_user])).pack()
+    #     newtext = 'MyNew text'
+    #     l1.config(text=newtext)
+    # else:
+    #     tk.Label(root,text ='\nHi ['+ str(name_user) +'] Welcome back to CasiGame ! You have : '+ str(money[name_user]) +'$').pack()
+    #     return name_user
+    #     newtext = 'MyNew text'
+    #     l1.config(text=newtext)
+
+    # if money[name_user] == 0:
+    #     tk.Label(root, text = '''You don't have enough money for bet ! you have: 0 $''').pack()
+    #     credit = tk.Entry(root, text = '''Do you want credit your account with 100$ ? y/n : ''').pack()
+    #     credit = input('Do you want credit your account with 100$ ? y/n : ')
+    #     if credit == "y" or credit == "Y":
+    #         money[name_user] =+ 100
+    #     else:
+    #         tk.Label(root, text='Without money you leave the game sorry !').pack()
+    #         start = False
+
+
+
 def getEntryNumberANDBet():
-    # start = True
-    # while start:
+
     name_user = inputName.get()
     number_bet = -1
     if number_bet < 0 or number_bet > 50:#Loop for check restriction numb
@@ -116,7 +148,6 @@ def getEntryNumberANDBet():
             lNgn = tk.Label(root, text='''This number is not good''').pack()
         if number_bet > 49:
             lnO = tk.Label(root, text='''This number is over 50 or equal''').pack()
-        #Start Game
 
     bet = 0
     if bet <= 0 or bet > money[name_user] :
@@ -154,6 +185,23 @@ def getEntryNumberANDBet():
 
     save_money(money)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # INTERFACE
 
 l = tk.Label(root, 
@@ -167,11 +215,6 @@ def create():
     tk.Button(win, text = "Day").pack(ipadx=5,ipady=5, fill=tk.X)
 btn = tk.Button(root, text="View the Leadder", command = create)
 btn.pack(pady = 10) 
-
-
-
-
-# INTERFACE
 
 # Leave the game
 
