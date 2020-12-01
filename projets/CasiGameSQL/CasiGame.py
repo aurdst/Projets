@@ -12,7 +12,7 @@ from math import ceil
 import pickle
 from operator import itemgetter
 import mysql.connector
-import connectBDD
+from mysql.connector import Error
 from DAO_sql import *
 from pprint import pprint
 
@@ -50,57 +50,35 @@ def retrieve_money():
 def readmoney():
     pass
 
-def CheckUserExist(name): 
+def CheckUserExist(name): #*----------------------------------------FINISHED-----------------------------------------------
+    try:
+        #* Cursor must be redeclared here
+        curQuery = connect.cursor(buffered               = True)
+        query    = ("SELECT * FROM users WHERE name_user = %s")
+        rq       = curQuery.execute(query, (name,)) 
+        rs       = curQuery.fetchall()
+    except mysql.connector.Error as error:
+        print("Failed to get record from MySQL table: {}".format(error))
 
-    print(name)
-    name2 = name
-    query = ("SELECT * FROM users WHERE name_user = " + str(name2))
-    print(query)
-    request = cur.execute(query, name2)
+    return rs 
 
-    #! FOR PRINT A QUERY REQUEST
-    for (identifiant,nom,password,money) in cur:
-        print("id -> {}, nom -> {}, password -> {}, money -> {}".format(identifiant, nom, password, money))
-    
-    if query is True:
-        return True 
+def connectToDB(): #*----------------------------------------FINISHED-----------------------------------------------
+    cur       = connect.cursor()
+    name      = inputName.get()
+    arrayUser = CheckUserExist(name)
+
+    if len(arrayUser) > 0:
+        for row in arrayUser:
+            money = row[2]
+        tk.Label(root, text='\n Welcome [{0}], you got {1} $'.format(name, money)).pack()
     else:
-        return False
-
-def CheckPassword(passw):
-
-    print(passw)
-    pwd2 = (passw,)
-    queryPass = ("SELECT * FROM users WHERE pwd = %s")
-    requestPass = cur.execute(queryPass, pwd2)
-
-    #! FOR PRINT A QUERY REQUEST
-    for (idf,name,password,money) in cur:
-        print("id = {0}, name = {1}, passw = {2}, money = {3}".format(idf,name,password,money))
-
-    if queryPass is True:
-        return True
-    else:
-        return False
-
-def connectToDB():
-    cur        = connect.cursor(buffered = True)
-    name       = inputName.get()
-    pwd        = inputPassword.get()
-    user_exist = CheckUserExist(inputName.get())
-    passw_correct = CheckPassword(inputPassword.get())
-    money      = 1000
-    if user_exist == True :
-        l1 = tk.Label(root, text='\n Welcome [{0}]'.format(name, money)).pack()
-    else:
-        addUser = ("INSERT INTO users (name_user, pwd, money) VALUES (%s, %s, %s)")
-        User    = (name, pwd, money)
-        cur.execute(addUser, User)
+        addUser = ("INSERT INTO users (name_user, money) VALUES (%s, %s)")
+        user = (name, 1000)
+        cur.execute(addUser, user)
         connect.commit()
-        l1 = tk.Label(root, text='\nYou are not in DataBase you are a new user [{0}] you start with : {1}$'.format(name, money)).pack()
+        tk.Label(root, text='\nYou have been added in data base [{0}], you start with : {1}$'.format(name, 1000)).pack()
 
 def getEntryNumberANDBet():
-
     name_user = inputName.get()
     money = retrieve_money()
     number_bet = -1
